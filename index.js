@@ -54,9 +54,15 @@ async function run() {
 
         // get all volunteer opportunites
         app.get('/volunteer-opportunities', async (req, res) => {
-            const result = await volunteerOpportunitiesCollection.find({}).toArray()
+            const {search} = req.query
+            let find = {}
+            if(search){
+                find = {name: {$regex: search, $options: 'i'}}
+            }
+            const result = await volunteerOpportunitiesCollection.find(find).toArray()
             res.send(result)
         })
+        
         // get volunteer opportunites by id
         app.get('/volunteer-opportunities/:id', async (req, res) => {
             const id = req.params.id
@@ -67,7 +73,7 @@ async function run() {
 
         // remove single voluter
         app.delete('/volunteer-delete/:id', async(req, res)=>{
-            const id = req.id
+            const id = req.params.id
             const find = {_id: new ObjectId(id)}
             const result = await volunteerCollection.deleteOne(find)
             res.send(result)

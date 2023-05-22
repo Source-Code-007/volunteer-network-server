@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const port = process.env.PORT || 2500
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require("dotenv").config();
 const app = express()
 
@@ -13,7 +14,6 @@ app.get('/', (req, res) => {
 })
 
 
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.VOLUNTEER_DB_USER}:${process.env.VOLUNTEER_DB_PASS}@cluster0.iw4kl2c.mongodb.net/?retryWrites=true&w=majority`;
 
 
@@ -64,6 +64,15 @@ async function run() {
             const result = await volunteerOpportunitiesCollection.findOne(find)
             res.send(result)
         })
+
+        // remove single voluter
+        app.delete('/volunteer-delete/:id', async(req, res)=>{
+            const id = req.id
+            const find = {_id: new ObjectId(id)}
+            const result = await volunteerCollection.deleteOne(find)
+            res.send(result)
+        }) 
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();

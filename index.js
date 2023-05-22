@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
 })
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.VOLUNTEER_DB_USER}:${process.env.VOLUNTEER_DB_PASS}@cluster0.iw4kl2c.mongodb.net/?retryWrites=true&w=majority`;
 
 
@@ -29,17 +29,39 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
 
         const volunteerNetworkDB = client.db('volunteer-network-DB')
         const volunteerOpportunitiesCollection = volunteerNetworkDB.collection('volunteer-opportunities-collection')
+        const volunteerCollection = volunteerNetworkDB.collection('volunteer-collection')
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
+        // create volunteer
+        app.post('/add-volunteer', async (req, res) => {
+            const newVolunteer = req.body
+            const result = await volunteerCollection.insertOne(newVolunteer)
+            res.send(result)
+        })
+
+        // get all volunteer
+        app.get('/volunteers', async (req, res) => {
+            const result = await volunteerCollection.find({}).toArray()
+            res.send(result)
+        })
+
+        // get all volunteer opportunites
         app.get('/volunteer-opportunities', async (req, res) => {
             const result = await volunteerOpportunitiesCollection.find({}).toArray()
+            res.send(result)
+        })
+        // get volunteer opportunites by id
+        app.get('/volunteer-opportunities/:id', async (req, res) => {
+            const id = req.params.id
+            const find = { _id: new ObjectId(id) }
+            const result = await volunteerOpportunitiesCollection.findOne(find)
             res.send(result)
         })
     } finally {
@@ -52,5 +74,5 @@ run().catch(console.dir);
 
 
 app.listen(port, () => {
-    console.log('volunteer network is running!');
+    console.log(`volunteer network is running on ${port}!`);
 })
